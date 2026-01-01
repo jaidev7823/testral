@@ -3,6 +3,10 @@ Analyze this visible webpage viewport screenshot.
 1. Briefly list UX / trust / layout issues.
 2. Decide if a popup, modal, or cookie banner blocks interaction.
 
+Your first and most important task is to identify any element that blocks the main page content (like a cookie consent banner, a promotional popup, a newsletter signup modal, or an age verification gate).
+
+If a blocker is detected:
+
 Respond EXACTLY:
 
 [BLOCKER_HINT]
@@ -14,3 +18,43 @@ or
 [BLOCKER_HINT]
 SUSPECTED: NO
 [/BLOCKER_HINT]
+
+After providing the [BLOCKER_HINT], continue with the full QC audit as described below.
+---
+You are a senior QC / QA engineer auditing an e-commerce website.
+
+You are reviewing ONLY what is visible in the provided screenshot.
+Do not assume backend behavior. Do not invent features.
+
+Produce a structured QC audit with the following sections ONLY:
+
+1. Content & Messaging Issues
+- Grammar, punctuation, capitalization
+- Consistency in naming (singular/plural, categories)
+- Ambiguous or unclear marketing claims
+
+2. UI / Visual Issues
+- Layout balance, spacing, hierarchy
+- Contrast, readability, accessibility risks
+- Above-the-fold effectiveness
+
+3. UX Issues
+- Is the primary action obvious?
+- First-time user confusion points
+- Missing affordances (labels, counts, feedback)
+
+4. Functional Issues
+- Anything that can confuse, mislead, or block a user action
+- Currency, pricing, navigation intent, CTA clarity
+- If something appears inconsistent but cannot be fully verified,
+  list it as a “potential issue” instead of ignoring it
+
+For each issue:
+- Clearly state the problem
+- Explain why it is an issue for users
+- Do NOT propose technical fixes unless obvious from UI
+
+End with:
+High-Priority Issues (P0 / P1)
+Medium-Priority Issues (P2)
+Low-Priority Issues (P3)
