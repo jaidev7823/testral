@@ -1,67 +1,83 @@
-import sys
 import base64
-import os
-from playwright.sync_api import sync_playwright
 import ollama
-import actions
+import re
 
-def run_audit(url: str):
-    # --- SETUP FOLDERS ---
-    screenshot_dir = "screenshots"
-    if not os.path.exists(screenshot_dir):
-        os.makedirs(screenshot_dir)
-    
-    screenshot_path = os.path.join(screenshot_dir, "first_section.png")
 
-    # --- LOAD PROMPT FROM FILE ---
-    try:
-        with open("prompt.txt", "r", encoding="utf-8") as f:
-            prompt_content = f.read()
-    except FileNotFoundError:
-        print("Error: prompt.txt file not found. Please create it in the same directory.")
-        return
+def run_audit(screenshot_path: str):
+    """
+    Pure perception module.
 
-    # --- PLAYWRIGHT SECTION ---
-    with sync_playwright() as p:
-        print(f"Opening browser for: {url}...")
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport={"width": 1280, "height": 800})
+    Input:
+        screenshot_path: str
 
-        # 1. Open site
-        try:
-            page.goto(url, timeout=60000)
-            page.wait_for_load_state("networkidle")
+    Output:
+        {
+            "qc_report": str,
+            "blocker_hint": {
+                "suspected": bool,
+                "hint_text": str | None
+            }
+        }
+    """
 
-            # 2. Screenshot first visible section
-            page.screenshot(path=screenshot_path, full_page=False)
-            print(f"Screenshot saved to: {screenshot_path}")
-        except Exception as e:
-            print(f"Error during browser navigation: {e}")
-            browser.close()
-            return
+    # --- Load audit prompt ---
+    with open("prompt/audit.txt", "r", encoding="utf-8") as f:
+        audit_prompt = f.read()
 
-        browser.close()
-
-    # --- OLLAMA SECTION ---
+    # --- Read image ---
     with open(screenshot_path, "rb") as f:
         image_b64 = base64.b64encode(f.read()).decode()
 
-    print("Sending image to Gemma-3 via Ollama...")
+    # --- Vision call ---
     response = ollama.chat(
         model="qwen3-vl",
         messages=[{
             "role": "user",
-            "content": prompt_content,
+            "content": audit_prompt,
             "images": [image_b64]
         }]
     )
 
-    print("\n--- QC RESULT ---")
-    print(response["message"]["content"])
+    qc_text = response["message"]["content"]
+
+    # --- New blocker hint extraction ---
+    blocker_hint = {
+        "suspected": False,
+        "close_button_text": None,
+        "close_button_icon": None,
+    }
+
+    try:
+        # Use regex to find the BLOCKER_HINT block
+        hint_block_match = re.search(r"\[BLOCKER_HINT\](.*?)\[/BLOCKER_HINT\]", qc_text, re.DOTALL)
+        if hint_block_match:
+            hint_content = hint_block_match.group(1)
+
+            # Extract values from the block
+            suspected_match = re.search(r"SUSPECTED:\s*(YES|NO)", hint_content, re.IGNORECASE)
+            if suspected_match and suspected_match.group(1).upper() == "YES":
+                blocker_hint["suspected"] = True
+
+            text_match = re.search(r"CLOSE_BUTTON_TEXT:\s*\"(.*?)\"", hint_content, re.IGNORECASE)
+            if text_match and text_match.group(1):
+                blocker_hint["close_button_text"] = text_match.group(1).strip().lower()
+
+            icon_match = re.search(r"CLOSE_BUTTON_ICON:\s*\"(.*?)\"", hint_content, re.IGNORECASE)
+            if icon_match and icon_match.group(1):
+                blocker_hint["close_button_icon"] = icon_match.group(1).strip().lower()
+            
+            # Clean the main report text by removing the hint block
+            qc_report = qc_text.replace(hint_block_match.group(0), "").strip()
+        else:
+            # If no block is found, the original text is the report
+            qc_report = qc_text
+    except Exception:
+        # In case of any parsing error, just use the full text as the report
+        qc_report = qc_text
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python audit.py <url>")
-    else:
-        run_audit(sys.argv[1])
+    return {
+        "qc_report": qc_report,
+        "blocker_hint": blocker_hint
+    }
+

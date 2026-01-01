@@ -1,19 +1,33 @@
-# Testral — Ecommerce QC Audit Agent (v0)
+# 🧠 Testral — E-commerce QC Audit Agent (v0)
 
-## What this agent does
-- Loads an ecommerce site using Playwright
-- Takes full-page screenshots as the primary source of truth
-- Uses a local vision LLM (Ollama + Gemma3) to detect visual blockers and QC issues
-- Interacts with the page only when a visual blocker is confirmed
-- Outputs a short, screenshot-backed QC report as JSON
+Testral is a **perception-first, proof-driven QC audit agent** for e-commerce websites.
 
-## What this intentionally does NOT do
-- No full QA testing
-- No buyer journeys or cart flows
-- No DOM crawling or HTML analysis
-- No test cases or assertions
-- No cloud APIs or external services
+This is **not full QA testing** and **not automation for checkout funnels**.  
+It behaves like a **first-time visitor + QC reviewer**, sampling visible issues that break trust fast.
 
-## How to run
-```bash
-python audit.py https://examplestore.com
+The system captures **screenshots**, runs **vision-based audits**, optionally removes blockers (cookie popups, modals), and saves a **step-by-step audit trail** in `audit.md`.
+
+---
+
+## 🎯 What This Agent Is (and Is Not)
+
+### ✅ What it does
+- Opens a website like a first-time user
+- Takes screenshots section-by-section
+- Uses a vision model to analyze **what is visible**
+- Detects **blocking UI elements** (cookie banners, modals, age gates)
+- Attempts to close blockers **only when suggested by audit**
+- Scrolls progressively through the page
+- Saves a **markdown audit log** with proof
+
+### ❌ What it does NOT do
+- No full functional QA
+- No checkout completion
+- No payment testing
+- No synthetic DOM assertions
+- No blind CTA spamming
+
+---
+
+## 🧱 System Architecture
+
