@@ -7,8 +7,8 @@ from pathlib import Path
 MODEL = "qwen3-vl"
 AUDIT_FILE = "audit.md"
 
-AUDIT_PROMPT = Path("prompt/audit.txt").read_text()
-BLOCKER_PROMPT = Path("prompt/blocker.txt").read_text()
+AUDIT_PROMPT = Path("prompt/audit.txt").read_text(encoding="utf-8")
+BLOCKER_PROMPT = Path("prompt/blocker.txt").read_text(encoding="utf-8")
 
 
 def vision_call(prompt: str, image_path: str) -> str:

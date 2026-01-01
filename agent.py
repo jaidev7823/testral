@@ -4,7 +4,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 from audit import run_audit, run_blocker_audit
-from action import inject_numbers, remove_numbers, click_number
+from actions import inject_numbers, remove_numbers, click_number
 from shortcut import INJECT_NUMBERS, REMOVE_NUMBERS
 
 URL = "https://bomcrewmall.com"
