@@ -14,11 +14,12 @@ The system captures **screenshots**, runs **vision-based audits**, optionally re
 ### ✅ What it does
 - Opens a website like a first-time user
 - Takes screenshots section-by-section
-- Uses a vision model to analyze **what is visible**
-- Detects **blocking UI elements** (cookie banners, modals, age gates)
-- Attempts to close blockers **only when suggested by audit**
-- Scrolls progressively through the page
-- Saves a **markdown audit log** with proof
+- Uses a vision model to analyze it like prompt/audit.py is saying
+- Save it in audit.md
+- DECIDE SHOULD CONTINUE SCROLL OR INTRACT
+    - if there is something which is was webpage (cookie banners, modals, age gates)
+    - if yes Attempts to close blockers **only when suggested by audit**
+- Then loop from second steps until page reach end
 
 ### ❌ What it does NOT do
 - No full functional QA

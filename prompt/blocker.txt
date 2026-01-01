@@ -1,0 +1,9 @@
+This screenshot shows a popup with numbered UI controls.
+
+Identify the NUMBER that closes or dismisses the popup.
+
+Respond EXACTLY:
+
+[BLOCKER_HINT]
+CLOSE_NUMBER: <number>
+[/BLOCKER_HINT]

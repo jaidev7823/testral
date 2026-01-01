@@ -1,83 +1,57 @@
+# audit.py
 import base64
-import ollama
 import re
+import ollama
+from pathlib import Path
+
+MODEL = "qwen3-vl"
+AUDIT_FILE = "audit.md"
+
+AUDIT_PROMPT = Path("prompt/audit.txt").read_text()
+BLOCKER_PROMPT = Path("prompt/blocker.txt").read_text()
 
 
-def run_audit(screenshot_path: str):
-    """
-    Pure perception module.
+def vision_call(prompt: str, image_path: str) -> str:
+    with open(image_path, "rb") as f:
+        img = base64.b64encode(f.read()).decode()
 
-    Input:
-        screenshot_path: str
-
-    Output:
-        {
-            "qc_report": str,
-            "blocker_hint": {
-                "suspected": bool,
-                "hint_text": str | None
-            }
-        }
-    """
-
-    # --- Load audit prompt ---
-    with open("prompt/audit.txt", "r", encoding="utf-8") as f:
-        audit_prompt = f.read()
-
-    # --- Read image ---
-    with open(screenshot_path, "rb") as f:
-        image_b64 = base64.b64encode(f.read()).decode()
-
-    # --- Vision call ---
-    response = ollama.chat(
-        model="qwen3-vl",
+    res = ollama.chat(
+        model=MODEL,
         messages=[{
             "role": "user",
-            "content": audit_prompt,
-            "images": [image_b64]
-        }]
+            "content": prompt,
+            "images": [img]
+        }],
+        options={"temperature": 0}
     )
-
-    qc_text = response["message"]["content"]
-
-    # --- New blocker hint extraction ---
-    blocker_hint = {
-        "suspected": False,
-        "close_button_text": None,
-        "close_button_icon": None,
-    }
-
-    try:
-        # Use regex to find the BLOCKER_HINT block
-        hint_block_match = re.search(r"\[BLOCKER_HINT\](.*?)\[/BLOCKER_HINT\]", qc_text, re.DOTALL)
-        if hint_block_match:
-            hint_content = hint_block_match.group(1)
-
-            # Extract values from the block
-            suspected_match = re.search(r"SUSPECTED:\s*(YES|NO)", hint_content, re.IGNORECASE)
-            if suspected_match and suspected_match.group(1).upper() == "YES":
-                blocker_hint["suspected"] = True
-
-            text_match = re.search(r"CLOSE_BUTTON_TEXT:\s*\"(.*?)\"", hint_content, re.IGNORECASE)
-            if text_match and text_match.group(1):
-                blocker_hint["close_button_text"] = text_match.group(1).strip().lower()
-
-            icon_match = re.search(r"CLOSE_BUTTON_ICON:\s*\"(.*?)\"", hint_content, re.IGNORECASE)
-            if icon_match and icon_match.group(1):
-                blocker_hint["close_button_icon"] = icon_match.group(1).strip().lower()
-            
-            # Clean the main report text by removing the hint block
-            qc_report = qc_text.replace(hint_block_match.group(0), "").strip()
-        else:
-            # If no block is found, the original text is the report
-            qc_report = qc_text
-    except Exception:
-        # In case of any parsing error, just use the full text as the report
-        qc_report = qc_text
+    return res["message"]["content"]
 
 
-    return {
-        "qc_report": qc_report,
-        "blocker_hint": blocker_hint
-    }
+def parse_blocker(text: str) -> bool:
+    return bool(re.search(r"SUSPECTED:\s*YES", text, re.I))
 
+
+def parse_number(text: str):
+    m = re.search(r"CLOSE_NUMBER:\s*(\d+)", text)
+    return int(m.group(1)) if m else None
+
+
+def log(title, img, text):
+    with open(AUDIT_FILE, "a", encoding="utf-8") as f:
+        f.write(f"## {title}\n")
+        f.write(f"- Screenshot: {img}\n\n")
+        f.write(text.strip() + "\n\n---\n\n")
+
+
+def run_audit(step, image, suffix="Initial"):
+    text = vision_call(AUDIT_PROMPT, image)
+    blocked = parse_blocker(text)
+    log(f"Step {step} — {suffix} Audit", image, text)
+    return text, blocked
+
+
+def run_blocker_audit(step, image):
+    text = vision_call(BLOCKER_PROMPT, image)
+    idx = parse_number(text)
+    log(f"Step {step} — Blocker Grounding", image, text)
+    return idx

@@ -1,65 +1,16 @@
-Your first and most important task is to identify any element that blocks the main page content (like a cookie consent banner, a promotional popup, a newsletter signup modal, or an age verification gate).
+Analyze this visible webpage viewport screenshot.
 
-If a blocker is detected, you MUST provide a description of the button or link used to close or dismiss it. Provide this information in the following format at the very beginning of your response:
+1. Briefly list UX / trust / layout issues.
+2. Decide if a popup, modal, or cookie banner blocks interaction.
+
+Respond EXACTLY:
 
 [BLOCKER_HINT]
 SUSPECTED: YES
-CLOSE_BUTTON_TEXT: "text on the button"
-CLOSE_BUTTON_ICON: "description of the icon, e.g., 'X symbol'"
 [/BLOCKER_HINT]
 
-- If the close button has text, fill in `CLOSE_BUTTON_TEXT`.
-- If it's an icon (like an 'X'), describe it in `CLOSE_BUTTON_ICON`.
-- If it has both, provide both.
-- If it has neither, or you can't find a close button, leave the value empty.
-- If NO blocker is detected, you MUST use `SUSPECTED: NO` and leave the other fields empty.
+or
 
-After providing the [BLOCKER_HINT], continue with the full QC audit as described below.
----
-You are a senior QC / QA engineer auditing an e-commerce website.
-
-You are reviewing ONLY what is visible in the provided screenshot.
-Do not assume backend behavior. Do not invent features.
-
-Produce a structured QC audit with the following sections ONLY:
-
-1. Functional Issues
-- Anything that can confuse, mislead, or block a user action
-- Currency, pricing, navigation intent, CTA clarity
-- If something appears inconsistent but cannot be fully verified,
-  list it as a “potential issue” instead of ignoring it
-
-2. Content & Messaging Issues
-- Grammar, punctuation, capitalization
-- Consistency in naming (singular/plural, categories)
-- Ambiguous or unclear marketing claims
-
-3. UI / Visual Issues
-- Layout balance, spacing, hierarchy
-- Contrast, readability, accessibility risks
-- Above-the-fold effectiveness
-
-4. UX Issues
-- Is the primary action obvious?
-- First-time user confusion points
-- Missing affordances (labels, counts, feedback)
-
-5. SEO / Accessibility Issues (only if observable)
-- Text embedded in images
-- Missing visible headings
-- Non-descriptive navigation labels
-
-6. Internationalization / Localization Risks
-- Mixed currencies, regions, or shipping messages
-- Geography ambiguity
-- Language consistency
-
-For each issue:
-- Clearly state the problem
-- Explain why it is an issue for users
-- Do NOT propose technical fixes unless obvious from UI
-
-End with:
-High-Priority Issues (P0 / P1)
-Medium-Priority Issues (P2)
-Low-Priority Issues (P3)
+[BLOCKER_HINT]
+SUSPECTED: NO
+[/BLOCKER_HINT]

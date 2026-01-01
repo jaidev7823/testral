@@ -1,66 +1,66 @@
-from browser import open_page, take_screenshot, scroll_page
-from audit import run_audit
-from actions import close_blocker, click_by_text
+# agent.py
 import time
+from pathlib import Path
+from playwright.sync_api import sync_playwright
 
-def run(url):
-    print(f"[AGENT] Starting audit for: {url}")
+from audit import run_audit, run_blocker_audit
+from action import inject_numbers, remove_numbers, click_number
+from shortcut import INJECT_NUMBERS, REMOVE_NUMBERS
 
-    page = open_page(url)
+URL = "https://bomcrewmall.com"
+VIEWPORT = {"width": 1280, "height": 800}
+AUDIT_FILE = "audit.md"
 
-    step = 0
-    while True:
-        time.sleep(5)  # wait 5 seconds before taking any step
 
-        step += 1
-        print(f"[AGENT] Step {step}")
+def run():
+    Path(AUDIT_FILE).write_text(f"# Audit Log\nTarget: {URL}\n\n---\n\n")
 
-        screenshot = take_screenshot(page, step)
-        print(f"[AGENT] Screenshot saved: {screenshot}")
+    with sync_playwright() as p:
+        page = p.chromium.launch(headless=False).new_page(viewport=VIEWPORT)
+        page.goto(URL, timeout=30000)
+        time.sleep(2)
 
-        audit = run_audit(screenshot)
+        step = 0
 
-        # Persist audit result to audit.md (append)
-        try:
-            with open("audit.md", "a", encoding="utf-8") as f:
-                f.write(f"## Step {step}\n")
-                f.write(f"- Screenshot: {screenshot}\n")
-                f.write("- QC Report:\n\n")
-                f.write("```")
-                f.write((audit.get("qc_report") or "") + "\n")
-                f.write("```\n")
-                suspected = audit.get("blocker_hint", {}).get("suspected")
-                f.write(f"- Blocker suspected: {'Yes' if suspected else 'No'}\n")
-                hint_text = audit.get("blocker_hint", {}).get("hint_text")
-                if hint_text:
-                    f.write(f"- Blocker hint: {hint_text}\n")
-                f.write("\n")
-        except Exception:
-            pass
+        while True:
+            step += 1
 
-        # --- Handle possible blocker ---
-        if audit["blocker_hint"]["suspected"]:
-            print("[AGENT] Possible blocker detected")
-            closed = close_blocker(page, audit["blocker_hint"])
-            if closed:
-                print("[AGENT] Blocker closed, retrying step")
-                continue
+            # 1. Clean screenshot + audit
+            clean_img = f"screenshots/step_{step}_clean.png"
+            page.screenshot(path=clean_img, full_page=False)
 
-        # --- QC output ---
-        print("\n--- QC REPORT ---")
-        print(audit["qc_report"])
+            audit_text, blocked = run_audit(step, clean_img)
 
-        # --- Optional CTA interaction ---
-        # clicked = click_by_text(page, ["shop now", "view collection"])
-        # if clicked:
-        #     print("[AGENT] CTA clicked")
+            # 2. If blocker suspected → ground + close
+            if blocked:
+                inject_numbers(page)
+                time.sleep(0.3)
 
-        # --- Scroll ---
-        if not scroll_page(page):
-            print("[AGENT] Cannot scroll further, ending audit")
-            break
+                num_img = f"screenshots/step_{step}_numbered.png"
+                page.screenshot(path=num_img, full_page=False)
+
+                close_idx = run_blocker_audit(step, num_img)
+                if close_idx is not None:
+                    click_number(page, close_idx)
+                    time.sleep(1)
+
+                remove_numbers(page)
+                time.sleep(0.3)
+
+                cleared_img = f"screenshots/step_{step}_cleared.png"
+                page.screenshot(path=cleared_img, full_page=False)
+                run_audit(step, cleared_img, suffix="Post Clear")
+
+            # 3. Scroll
+            prev = page.evaluate("window.scrollY")
+            page.mouse.wheel(0, 600)
+            time.sleep(1)
+
+            if page.evaluate("window.scrollY") == prev:
+                break
+
+        page.close()
 
 
 if __name__ == "__main__":
-    # CHANGE URL HERE
-    run("https://bomcrewmall.com")
+    run()
