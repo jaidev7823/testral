@@ -12,6 +12,8 @@ BLOCKER_PROMPT = Path("prompt/blocker.txt").read_text(encoding="utf-8")
 
 
 def vision_call(prompt: str, image_path: str) -> str:
+    print(f"[VISION] Analyzing image: {image_path}")
+
     with open(image_path, "rb") as f:
         img = base64.b64encode(f.read()).decode()
 
@@ -28,15 +30,20 @@ def vision_call(prompt: str, image_path: str) -> str:
 
 
 def parse_blocker(text: str) -> bool:
-    return bool(re.search(r"SUSPECTED:\s*YES", text, re.I))
+    blocked = bool(re.search(r"SUSPECTED:\s*YES", text, re.I))
+    print(f"[AUDIT] Blocker suspected: {blocked}")
+    return blocked
 
 
 def parse_number(text: str):
     m = re.search(r"CLOSE_NUMBER:\s*(\d+)", text)
-    return int(m.group(1)) if m else None
+    idx = int(m.group(1)) if m else None
+    print(f"[AUDIT] Close button index: {idx}")
+    return idx
 
 
 def log(title, img, text):
+    print(f"[LOG] {title}")
     with open(AUDIT_FILE, "a", encoding="utf-8") as f:
         f.write(f"## {title}\n")
         f.write(f"- Screenshot: {img}\n\n")
@@ -44,6 +51,7 @@ def log(title, img, text):
 
 
 def run_audit(step, image, suffix="Initial"):
+    print(f"[STEP {step}] Running {suffix} audit")
     text = vision_call(AUDIT_PROMPT, image)
     blocked = parse_blocker(text)
     log(f"Step {step} — {suffix} Audit", image, text)
@@ -51,6 +59,7 @@ def run_audit(step, image, suffix="Initial"):
 
 
 def run_blocker_audit(step, image):
+    print(f"[STEP {step}] Running blocker grounding")
     text = vision_call(BLOCKER_PROMPT, image)
     idx = parse_number(text)
     log(f"Step {step} — Blocker Grounding", image, text)
