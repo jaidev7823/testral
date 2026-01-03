@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image, ImageFilter
 import re
 
-MODEL = "ministral-3"
+MODEL = "devstral-small-2"
 AUDIT_FILE = "audit.md"
 
 AUDIT_PROMPT = Path("prompt/audit.txt").read_text(encoding="utf-8")
