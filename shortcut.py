@@ -8,7 +8,7 @@ INJECT_NUMBERS = """
     const vh = window.innerHeight;
 
     const els = document.querySelectorAll(
-        "button, a, input, select, textarea, [role='button'], [role='link'], [onclick]"
+        "button, a, input, select, textarea, svg, span, div, i, [role='button'], [onclick]"
     );
 
     let idx = 0;
@@ -18,6 +18,7 @@ INJECT_NUMBERS = """
             const r = el.getBoundingClientRect();
             const s = getComputedStyle(el);
 
+            // visibility filter
             if (
                 r.width < 3 || r.height < 3 ||
                 s.display === 'none' ||
@@ -25,12 +26,23 @@ INJECT_NUMBERS = """
                 s.opacity === '0'
             ) return;
 
+            // viewport filter
             if (
                 r.bottom < 0 ||
                 r.right < 0 ||
                 r.top > vh ||
                 r.left > vw
             ) return;
+
+            // 🔑 CLICKABILITY LOGIC (THIS IS THE FIX)
+            const clickable =
+                ['BUTTON','A','INPUT','SELECT','TEXTAREA'].includes(el.tagName) ||
+                el.hasAttribute('onclick') ||
+                el.getAttribute('role') === 'button' ||
+                s.cursor === 'pointer' ||
+                el.closest('[role="dialog"], .modal, .popup');
+
+            if (!clickable) return;
 
             el.setAttribute('data-ai-idx', idx);
 
@@ -55,6 +67,7 @@ INJECT_NUMBERS = """
     });
 }
 """
+
 
 REMOVE_NUMBERS = """
 () => {

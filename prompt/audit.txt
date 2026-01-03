@@ -1,60 +1,66 @@
-Analyze this visible webpage viewport screenshot.
+You are performing a STRICT, TEXT-ONLY QC audit of a webpage screenshot.
 
-1. Briefly list UX / trust / layout issues.
-2. Decide if a popup, modal, or cookie banner blocks interaction.
+You MUST follow these rules EXACTLY.
 
-Your first and most important task is to identify any element that blocks the main page content (like a cookie consent banner, a promotional popup, a newsletter signup modal, or an age verification gate).
-
-If a blocker is detected:
-
-Respond EXACTLY:
-
-[BLOCKER_HINT]
-SUSPECTED: YES
-[/BLOCKER_HINT]
-
-or
-
-[BLOCKER_HINT]
-SUSPECTED: NO
-[/BLOCKER_HINT]
-
-After providing the [BLOCKER_HINT], continue with the full QC audit as described below.
 ---
-You are a senior QC / QA engineer auditing an e-commerce website.
 
-You are reviewing ONLY what is visible in the provided screenshot.
-Do not assume backend behavior. Do not invent features.
+OUTPUT FORMAT (MANDATORY)
 
-Produce a structured QC audit with the following sections ONLY:
+You must respond with VALID JSON ONLY.
+Do NOT include markdown.
+Do NOT include explanations outside JSON.
+Do NOT include trailing text.
 
-1. Content & Messaging Issues
-- Grammar, punctuation, capitalization
-- Consistency in naming (singular/plural, categories)
-- Ambiguous or unclear marketing claims
+The JSON must follow this exact schema:
 
-2. UI / Visual Issues
-- Layout balance, spacing, hierarchy
-- Contrast, readability, accessibility risks
-- Above-the-fold effectiveness
+{
+  "blocker": {
+    "suspected": true | false
+  },
+  "issues": [
+    {
+      "text": "<exact visible text>",
+      "type": "grammar" | "typo",
+      "explanation": "<short explanation>",
+      "bbox": [x1, y1, x2, y2]
+    }
+  ]
+}
 
-3. UX Issues
-- Is the primary action obvious?
-- First-time user confusion points
-- Missing affordances (labels, counts, feedback)
+---
 
-4. Functional Issues
-- Anything that can confuse, mislead, or block a user action
-- Currency, pricing, navigation intent, CTA clarity
-- If something appears inconsistent but cannot be fully verified,
-  list it as a “potential issue” instead of ignoring it
+FIRST — BLOCKER FLAG (MANDATORY)
 
-For each issue:
-- Clearly state the problem
-- Explain why it is an issue for users
-- Do NOT propose technical fixes unless obvious from UI
+Determine whether any visible popup, modal, cookie banner, or overlay
+is present in the screenshot.
 
-End with:
-High-Priority Issues (P0 / P1)
-Medium-Priority Issues (P2)
-Low-Priority Issues (P3)
+Decide ONLY from what is visibly present.
+Do NOT assume or infer.
+
+Set:
+- blocker.suspected = true OR false
+
+---
+
+SECOND — TEXT QC AUDIT (ONLY)
+
+You are a forensic text QC reviewer.
+
+Check ONLY for:
+- Spelling mistakes
+- Grammar errors
+- Singular / plural inconsistency
+- Terminology consistency
+- Text style consistency
+
+---
+
+RULES (STRICT)
+
+- Report ONLY observable issues
+- Quote text EXACTLY as visible
+- Bounding boxes must be IMAGE PIXEL COORDINATES
+- If NO issues are found, return an empty issues array
+- Do NOT comment on UI/UX
+- Do NOT suggest improvements unless there is a clear error
+- Ignore header text if this is not the first webpage don't look like first sections

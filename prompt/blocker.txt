@@ -1,8 +1,66 @@
-This screenshot shows a popup with numbered UI controls.
+You are analyzing a screenshot that shows a popup or overlay
+with NUMBERED UI elements drawn on top of visible controls.
 
-Identify the NUMBER that closes or dismisses the popup.
+Your task is to identify the SINGLE number that DISMISSES or CLOSES the popup.
 
-Respond EXACTLY:
+---
+
+## WHAT COUNTS AS A VALID CLOSE ACTION
+
+A valid CLOSE control must clearly do ONE of the following:
+
+• Close the popup
+• Dismiss the popup
+• Skip the popup
+• Reject the popup
+• Remove the popup without progressing
+
+Typical valid close indicators include:
+- “X”
+- “✕”
+- “Close”
+- “No thanks”
+- “Not now”
+- “I’ll do it later”
+- “Skip”
+- “Dismiss”
+- "not intrested"
+- Back arrow that exits the popup
+
+---
+
+## WHAT YOU MUST NEVER SELECT (CRITICAL)
+
+❌ DO NOT select any control that:
+- Submits a form
+- Accepts cookies
+- Proceeds forward
+- Confirms an action
+- Says “OK”, “Allow”, “Accept”, “Continue”, “Submit”, “Agree”, “Yes”
+- Advances the user flow in any way
+- Anything that's CTA get coupoun
+
+If a control moves the user **forward**, it is NOT a close button.
+
+---
+
+## DECISION RULE (STRICT)
+
+Select the number that:
+- Most clearly REMOVES the popup
+- Leaves the underlying page visible
+- Does NOT perform submission or confirmation
+
+If multiple numbers exist:
+- Prefer an “X” or icon close over text
+- Prefer top-right close buttons
+- Prefer passive rejection over acceptance
+
+---
+
+## RESPONSE FORMAT (MANDATORY)
+
+Respond with EXACTLY this format and nothing else:
 
 [BLOCKER_HINT]
 CLOSE_NUMBER: <number>

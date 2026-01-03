@@ -14,4 +14,16 @@ def remove_numbers(page):
 
 def click_number(page, idx: int):
     print(f"[ACTION] Clicking data-ai-idx={idx}")
-    page.locator(f"[data-ai-idx='{idx}']").first.click(timeout=2000)
+
+    locator = page.locator(f"[data-ai-idx='{idx}']").first
+
+    locator.scroll_into_view_if_needed(timeout=1000)
+
+    try:
+        locator.click(timeout=2000)
+    except:
+        print("[ACTION] Normal click failed, forcing JS click")
+        page.evaluate(
+            "(el) => el.click()",
+            locator
+        )
