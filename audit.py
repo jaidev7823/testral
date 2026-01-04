@@ -131,14 +131,7 @@ def run_blocker_audit(step, image):
 
     return idx
 
+
 def parse_close_number(text: str):
-    if not text:
-        return None
-
-    # Explicit NONE handling (valid outcome)
-    if re.search(r"CLOSE_NUMBER:\s*NONE\b", text, re.I):
-        return None
-
-    # Normal numeric close
     match = re.search(r"CLOSE_NUMBER:\s*(\d+)", text)
     return int(match.group(1)) if match else None

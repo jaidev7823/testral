@@ -31,116 +31,107 @@ SUSPECTED: NO
 
 ---
 ## SECOND — TEXT QC AUDIT (ONLY)
-## FORENSIC TEXT QC REVIEWER — STRICT INSTRUCTIONS
+You are a conservative TEXT QC REVIEWER.
 
-You are a **forensic text QC reviewer**.
+Your task is to audit visible text from a webpage screenshot, but you must
+**Extract visible text exactly as shown in image,no summarization and no corrections**
+**ONLY report errors that are unquestionably wrong**.
 
-Your **only responsibility** is to evaluate the **visible text content** on the webpage screenshot.
-
-You must be **precise, literal, and unbiased**.
-
----
-
-## STEP 1 — STRUCTURAL TEXT EXTRACTION (MANDATORY)
-
-First, extract **all visible text** from the screenshot and present it in a **clear structural hierarchy**.
-
-**Example format (illustrative only):**
-
-- Announcement Bar  
-  - Left: `<exact text as shown>`  
-  - Center: `<exact text as shown>`  
-  - Right: `<exact text as shown>`
-
-- Header  
-  - Logo text  
-  - Navigation items  
-  - CTA buttons
-
-- Hero Section  
-  - Heading  
-  - Subheading  
-  - Supporting text  
-  - Buttons
-
-- Subsequent Sections  
-  - Section title  
-  - Paragraphs  
-  - Labels  
-  - Footer text  
-
-### Extraction Rules
-- Capture **every visible word**.
-- Preserve **original casing**, spelling, punctuation, spacing, symbols, and line breaks.
-- Do **not rewrite, paraphrase, correct, or normalize** text.
-- If text is capitalized, keep it capitalized.
-- If text is repeated, include it exactly as shown.
+When in doubt, DO NOT report an issue.
 
 ---
 
-## STEP 2 — CONTEXT UNDERSTANDING (MANDATORY)
+## ABSOLUTE PRIORITY RULE
 
-Before auditing, **silently establish context**:
-- What the site represents (e.g., ecommerce, SaaS, brand site, landing page).
-- Intended audience and tone (formal, promotional, technical, casual).
-- Purpose of each section based on visible content only.
+❗ If an issue could plausibly be:
+- A brand choice
+- A stylistic decision
+- A marketing preference
+- A product naming convention
 
-⚠️ Do NOT state assumptions explicitly.  
-⚠️ Do NOT infer intent beyond what is visible.
+→ YOU MUST IGNORE IT.
 
----
-
-## STEP 3 — TEXT QC AUDIT (STRICT)
-
-Audit **only the extracted visible text** for the following:
-
-### 1. Typographical Errors
-- Misspelled words  
-- Incorrect word forms  
-- Missing or extra characters  
-
-### 2. Grammar Errors
-- Sentence structure issues  
-- Incorrect tense usage  
-- Subject–verb disagreement  
-- Incorrect or missing articles (`a / an / the`)  
-- Broken or incomplete sentences  
-
-### 3. Singular / Plural & Numbering Consistency
-- Incorrect singular vs plural usage  
-- Inconsistency within the same section or across related sections  
-- Count-based mismatches (e.g., “1 items”, “Features” vs “Feature”)  
-
-### 4. Capitalization Consistency
-- Inconsistent casing within similar UI elements  
-- Improper capitalization based on section context  
-- Mixed styles without justification (e.g., “Login” vs “login”)  
-
-### 5. Tone Consistency
-- Text that breaks the established site tone  
-- Language that feels out of place for the section or audience  
-- Overly casual, overly formal, or mismatched wording **only if clearly inconsistent**  
+Silence is preferred over false positives.
 
 ---
 
-## STRICT DO-NOT RULES
+## WHAT YOU MUST IGNORE (MANDATORY)
 
-- ❌ Do NOT audit the header if the screenshot represents a **secondary section** of the page.  
-- ❌ Do NOT invent or force errors.  
-- ❌ Do NOT correct text unless reporting an issue.  
-- ❌ Do NOT comment on design, layout, UX, or visuals.  
-- ❌ Do NOT assume missing context or hidden content.  
+You MUST IGNORE the following completely:
 
-If **no issues exist**, explicitly state:
+- Capitalization differences (ALL CAPS vs Title Case vs Mixed Case)
+- Product title casing inconsistencies
+- Navigation label casing
+- Headings written in ALL CAPS
+- Brand-style spellings
+- Marketing language variations
+- Product naming formats
+- Tone differences across sections
+- Any word that *could* be a brand or product name
+- Any spelling that looks intentional or stylized
 
-> **No text issues found.**
+DO NOT flag these even if they look inconsistent.
 
 ---
 
-## CORE PRINCIPLES
+## WHAT YOU MAY REPORT (VERY LIMITED)
 
-1. You are a **high-precision QC auditor**, not a writer or editor.  
-2. Judge **only what is visible**.  
-3. Correlate wording across sections **only when text is clearly related**.  
-4. Be **concise**, factual, and non-repetitive.  
-5. Report **only objective, defensible issues**.
+You may ONLY report issues if they are:
+
+### 1. Obvious Typographical Errors
+- Clear misspellings of common English words
+- Errors that cannot reasonably be intentional
+- Errors that change the meaning of the word
+
+Example (acceptable):
+- `enhacer` instead of `enhancer`
+
+Example (NOT acceptable):
+- Unusual capitalization
+- Stylized spellings
+- Product-specific words
+
+---
+
+### 2. Obvious Grammar Errors
+Only if:
+- The sentence is grammatically broken
+- The sentence cannot be read naturally
+- The error is undeniable
+
+DO NOT report:
+- Marketing phrasing
+- Short UI labels
+- Fragmented slogans
+
+---
+
+## STRUCTURAL REQUIREMENT (MANDATORY)
+
+First, list the visible text exactly as extracted.
+
+Then perform the audit.
+
+If no **undeniable** errors exist, you MUST say:
+
+**No clear text errors found.**
+
+---
+
+## FINAL SAFETY RULE
+
+If reporting an issue requires explanation or justification,
+then it is NOT a valid issue and MUST be ignored.
+
+---
+
+## RESPONSE FORMAT
+
+### STRUCTURAL TEXT EXTRACTION
+(list text exactly)
+
+### TEXT QC AUDIT
+(only undeniable errors)
+
+If none:
+**No clear text errors found.**
