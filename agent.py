@@ -2,6 +2,7 @@
 import time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+import subprocess
 
 from audit import run_audit, run_blocker_audit
 from actions import inject_numbers, remove_numbers, click_number
@@ -111,6 +112,9 @@ def run():
         browser.close()
         print("[AGENT] Audit complete")
 
+    # Run post-processing after agent finishes
+    print("[POST] Running post_process.py")
+    subprocess.run(["python", "post_process.py"], check=True)
 
 if __name__ == "__main__":
     run()
