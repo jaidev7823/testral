@@ -7,7 +7,7 @@ import subprocess
 from audit import run_audit, run_blocker_audit
 from actions import inject_numbers, remove_numbers, click_number
 
-URL = "https://charmacyworld.com"
+URL = "https://www.schbang.com"
 VIEWPORT = {"width": 1280, "height": 800}
 AUDIT_FILE = "audit.md"
 
@@ -23,7 +23,7 @@ def run():
 
         print(f"[BROWSER] Navigating to {URL}")
         page.goto(URL, timeout=30000)
-        time.sleep(7)
+        time.sleep(10)
 
         step = 0
 
@@ -73,41 +73,32 @@ def run():
 
             time.sleep(1.5)
 
-            is_end = page.evaluate("""
+            prev_scroll = page.evaluate("() => window.scrollY")
+
+            page.evaluate("""
             () => {
-                const scrollBottom = window.scrollY + window.innerHeight;
-                const pageHeight = document.documentElement.scrollHeight;
-                return (pageHeight - scrollBottom) < 50;
+                window.scrollBy(0, Math.floor(window.innerHeight * 0.85));
             }
             """)
 
-            if is_end:
-                print("[AGENT] Near document bottom, verifying final state")
+            time.sleep(1.2)
 
-                verify_img = f"screenshots/step_{step}_verify_end.png"
-                page.screenshot(path=verify_img, full_page=False)
+            curr_scroll = page.evaluate("() => window.scrollY")
 
-                _, blocked = run_audit(step, verify_img, suffix="End Check")
+            if curr_scroll == prev_scroll:
+                print("[AGENT] Scroll did not move — using last screenshot for final check")
+
+                # Reuse last clean screenshot
+                _, blocked = run_audit(step, clean_img, suffix="Final Check")
 
                 if blocked:
-                    print("[AGENT] Popup detected at end, removing and continuing")
+                    print("[AGENT] Blocker present at final state (logged only)")
+                else:
+                    print("[AGENT] No blocker at final state")
 
-                    inject_numbers(page)
-                    time.sleep(0.3)
-
-                    num_img = f"screenshots/step_{step}_end_numbered.png"
-                    page.screenshot(path=num_img, full_page=False)
-
-                    close_idx = run_blocker_audit(step, num_img)
-                    if close_idx is not None:
-                        click_number(page, close_idx)
-                        time.sleep(1)
-
-                    remove_numbers(page)
-                    continue
-                
                 print("[AGENT] True page end confirmed. Stopping audit.")
                 break
+
 
         browser.close()
         print("[AGENT] Audit complete")
