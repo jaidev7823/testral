@@ -2,68 +2,71 @@
 
 INJECT_NUMBERS = """
 () => {
+    // 1. Cleanup
     document.querySelectorAll('.ai-number-badge').forEach(e => e.remove());
 
-    const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const vw = window.innerWidth;
 
-    const els = document.querySelectorAll(
-        "button, a, input, select, textarea, svg, span, div, i, [role='button'], [onclick]"
-    );
+    // 2. Identify the Active Overlay (Market standard for "top layer")
+    // We target the most likely popup containers first
+    const activeOverlay = document.querySelector('[role="dialog"], .modal, .popup, .overlay, [aria-modal="true"]');
+
+    // 3. Selection Strategy: Focus only on high-intent elements
+    // If an overlay exists, we ONLY look inside it. If not, we look at the body.
+    const root = activeOverlay || document.body;
+    const selectors = 'button, input, select, textarea, [role="button"], [onclick], .close, [aria-label*="close" i]';
+    const elements = Array.from(root.querySelectorAll(selectors));
 
     let idx = 0;
 
-    els.forEach(el => {
-        try {
-            const r = el.getBoundingClientRect();
-            const s = getComputedStyle(el);
+    elements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const style = window.getComputedStyle(el);
 
-            // visibility filter
-            if (
-                r.width < 3 || r.height < 3 ||
-                s.display === 'none' ||
-                s.visibility === 'hidden' ||
-                s.opacity === '0'
-            ) return;
+        // Logic Filter: Ignore hidden, tiny, or off-screen elements
+        if (
+            rect.width < 5 || rect.height < 5 ||
+            style.display === 'none' ||
+            style.visibility === 'hidden' ||
+            style.opacity === '0' ||
+            rect.bottom < 0 || rect.top > vh ||
+            rect.right < 0 || rect.left > vw
+        ) return;
 
-            // viewport filter
-            if (
-                r.bottom < 0 ||
-                r.right < 0 ||
-                r.top > vh ||
-                r.left > vw
-            ) return;
+        // Surgical Check: Is it actually clickable?
+        if (style.pointerEvents === 'none') return;
 
-            // 🔑 CLICKABILITY LOGIC (THIS IS THE FIX)
-            const clickable =
-                ['BUTTON','A','INPUT','SELECT','TEXTAREA'].includes(el.tagName) ||
-                el.hasAttribute('onclick') ||
-                el.getAttribute('role') === 'button' ||
-                s.cursor === 'pointer' ||
-                el.closest('[role="dialog"], .modal, .popup');
+        // 4. Enhanced UI/UX for the Badge
+        const badge = document.createElement('div');
+        badge.className = 'ai-number-badge';
+        badge.innerText = idx;
+        
+        // Data attribute for the AI to reference later
+        el.setAttribute('data-ai-idx', idx);
 
-            if (!clickable) return;
+        Object.assign(badge.style, {
+            position: 'fixed',
+            left: `${rect.left}px`,
+            top: `${rect.top}px`,
+            zIndex: '2147483647',
+            pointerEvents: 'none',
+            // Professional Look: Contrast, Shadow, and Font
+            background: '#000000',
+            color: '#ffffff',
+            border: '1px solid #ffffff',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: '800',
+            fontFamily: 'Inter, system-ui, sans-serif',
+            boxShadow: '0px 2px 4px rgba(0,0,0,0.5)',
+            transform: 'translate(-50%, -50%)', // Center on the top-left corner
+            lineHeight: '1'
+        });
 
-            el.setAttribute('data-ai-idx', idx);
-
-            const b = document.createElement('div');
-            b.className = 'ai-number-badge';
-            b.innerText = idx;
-            b.style.position = 'fixed';
-            b.style.left = Math.max(0, r.left) + 'px';
-            b.style.top = Math.max(0, r.top) + 'px';
-            b.style.background = 'yellow';
-            b.style.color = 'black';
-            b.style.fontSize = '12px';
-            b.style.fontWeight = 'bold';
-            b.style.padding = '1px 4px';
-            b.style.borderRadius = '3px';
-            b.style.zIndex = '2147483647';
-            b.style.pointerEvents = 'none';
-
-            document.body.appendChild(b);
-            idx++;
-        } catch {}
+        document.body.appendChild(badge);
+        idx++;
     });
 }
 """

@@ -17,13 +17,12 @@ def run():
     Path(AUDIT_FILE).write_text(f"# Audit Log\nTarget: {URL}\n\n---\n\n")
 
     with sync_playwright() as p:
-        print("[BROWSER] Launching Chromium (headless)")
         browser = p.chromium.launch(headless=False)
         page = browser.new_page(viewport=VIEWPORT)
 
         print(f"[BROWSER] Navigating to {URL}")
         page.goto(URL, timeout=30000)
-        time.sleep(10)
+        time.sleep(15)
 
         step = 0
 
@@ -31,14 +30,12 @@ def run():
             step += 1
             print(f"\n[AGENT] ===== STEP {step} =====")
 
-            # 1. Clean screenshot + audit
             clean_img = f"screenshots/step_{step}_clean.png"
             page.screenshot(path=clean_img, full_page=False)
             print(f"[SCREENSHOT] Saved {clean_img}")
 
-            _, blocked = run_audit(step, clean_img)
+            blocker_details, blocked = run_audit(step, clean_img)
 
-            # 2. Handle blocker
             if blocked:
                 print("[AGENT] Blocker detected, attempting removal")
                 inject_numbers(page)
@@ -48,7 +45,8 @@ def run():
                 page.screenshot(path=num_img, full_page=False)
                 print(f"[SCREENSHOT] Saved {num_img}")
 
-                close_idx = run_blocker_audit(step, num_img)
+                close_idx = run_blocker_audit(step, num_img, blocker_details)
+
                 if close_idx is not None:
                     print(f"[ACTION] Clicking element {close_idx}")
                     click_number(page, close_idx)
@@ -64,15 +62,7 @@ def run():
 
                 run_audit(step, cleared_img, suffix="Post Clear")
 
-            # 3. Scroll attempt (robust)
-            page.evaluate("""
-            () => {
-                window.scrollBy(0, Math.floor(window.innerHeight * 0.85));
-            }
-            """)
-
-            time.sleep(1.5)
-
+            # Scroll once and verify movement
             prev_scroll = page.evaluate("() => window.scrollY")
 
             page.evaluate("""
@@ -81,14 +71,13 @@ def run():
             }
             """)
 
-            time.sleep(1.2)
+            time.sleep(1.5)
 
             curr_scroll = page.evaluate("() => window.scrollY")
 
             if curr_scroll == prev_scroll:
-                print("[AGENT] Scroll did not move — using last screenshot for final check")
+                print("[AGENT] Scroll did not move — final check")
 
-                # Reuse last clean screenshot
                 _, blocked = run_audit(step, clean_img, suffix="Final Check")
 
                 if blocked:
@@ -99,13 +88,12 @@ def run():
                 print("[AGENT] True page end confirmed. Stopping audit.")
                 break
 
-
         browser.close()
         print("[AGENT] Audit complete")
 
-    # Run post-processing after agent finishes
     print("[POST] Running post_process.py")
     subprocess.run(["python", "post_process.py"], check=True)
+
 
 if __name__ == "__main__":
     run()

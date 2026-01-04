@@ -1,40 +1,7 @@
 You are analyzing a screenshot that may show a popup, modal, or overlay
-with NUMBERED UI elements drawn on top of visible controls.
+with NUMBERED UI elements drawn on top of visible controls which is in yellow who probably hidding some part of button.
 
 Your task is to determine **whether a popup still exists**, and **only if it exists**, identify the SINGLE number that DISMISSES or CLOSES it.
-
----
-
-## STEP 1 — POPUP EXISTENCE CHECK (MANDATORY)
-
-Before selecting any number, you MUST first decide:
-
-**Does a popup, modal, or overlay ACTUALLY exist in this screenshot?**
-
-A popup EXISTS only if:
-- It visually blocks or overlays the main page content, OR
-- It clearly demands attention before interacting with the page, OR
-- The background page appears dimmed, blurred, frozen, or partially inaccessible
-
-A popup does NOT exist if:
-- The page looks like a normal webpage section
-- The overlay appears to have disappeared
-- The content is fully scrollable and unobstructed
-- The numbered elements belong to normal page navigation, hero banners, sliders, or links
-
-### If NO popup exists:
-Respond EXACTLY with:
-
-[BLOCKER_HINT]
-CLOSE_NUMBER: NONE
-[/BLOCKER_HINT]
-
-⚠️ Do NOT guess.
-⚠️ Do NOT select any number if the popup is gone.
-
----
-
-## STEP 2 — VALID CLOSE ACTION (ONLY IF POPUP EXISTS)
 
 If and ONLY IF a popup clearly exists, identify the SINGLE number that DISMISSES or CLOSES the popup.
 
@@ -51,8 +18,10 @@ A valid CLOSE control must clearly do ONE of the following:
 • Remove the popup without progressing  
 
 Typical valid close indicators include:
+- probably will be in pop top right corner with some button 
 - “X”
 - “✕”
+- or half cut X with numbere
 - “Close”
 - “No thanks”
 - “Not now”
@@ -61,6 +30,9 @@ Typical valid close indicators include:
 - “Dismiss”
 - “Not interested”
 - A back arrow that exits the popup
+
+you probably got description about how close button looks like from BLOCKER_DESCRIPTION
+so check from that which one match
 
 ---
 

@@ -5,10 +5,12 @@ from pathlib import Path
 from PIL import Image, ImageFilter
 import re
 
-MODEL = "devstral-small-2"
+BLOCKER_MODEL = "ministral-3"   # or gemma3:vision
+AUDIT_MODEL = "devstral-small-2"
 AUDIT_FILE = "audit.md"
 
 AUDIT_PROMPT = Path("prompt/audit.txt").read_text(encoding="utf-8")
+BLOCKER_DETECTION_PROMPT = Path("prompt/blocker-detection.txt").read_text(encoding="utf-8")
 BLOCKER_PROMPT = Path("prompt/blocker.txt").read_text(encoding="utf-8")
 
 
@@ -32,12 +34,12 @@ def downscale_image(src_path: str, max_width: int = 960, sharpen: bool = True) -
     return str(out)
 
 
-def vision_call(prompt: str, image_path: str) -> str:
+def vision_call_audit(prompt: str, image_path: str) -> str:
     with open(image_path, "rb") as f:
         img = base64.b64encode(f.read()).decode()
 
     response = ollama.chat(
-        model=MODEL,
+        model=AUDIT_MODEL,
         messages=[{
             "role": "user",
             "content": prompt,
@@ -50,16 +52,12 @@ def vision_call(prompt: str, image_path: str) -> str:
     return response["message"]["content"] or ""
 
 
-def vision_call_text(prompt: str, image_path: str) -> str:
-    """
-    Used ONLY for blocker grounding.
-    Returns raw text exactly as model outputs.
-    """
+def vision_call_blocker(prompt: str, image_path: str) -> str:
     with open(image_path, "rb") as f:
         img = base64.b64encode(f.read()).decode()
 
     response = ollama.chat(
-        model=MODEL,
+        model=BLOCKER_MODEL,
         messages=[{
             "role": "user",
             "content": prompt,
@@ -68,7 +66,7 @@ def vision_call_text(prompt: str, image_path: str) -> str:
         options={"temperature": 0},
         stream=False
     )
-
+    print(response)
     return response["message"]["content"] or ""
 
 
@@ -81,42 +79,70 @@ def log(title, img, text):
         f.write("\n```\n\n---\n\n")
 
 
-def _detect_blocker_from_text(text: str) -> bool:
+def parse_blocker_response(text: str):
     """
-    Minimal heuristic.
-    Adjust keywords if needed.
+    Returns (blocked: bool, details: str | None)
     """
     if not text:
-        return False
+        return False, None
 
-    return bool(re.search(
-        r"\b(cookie|consent|subscribe|sign up|modal|popup|overlay)\b",
-        text,
-        re.I
-    ))
+    blocked = "SUSPECTED: YES" in text
+
+    details = None
+    if blocked:
+        m = re.search(r"DETAILS:\s*(.+)", text, re.I | re.S)
+        if m:
+            details = m.group(1).strip()
+
+    return blocked, details
+
 
 
 def run_audit(step, image, suffix="Initial"):
-    print(f"[STEP {step}] Running {suffix} audit")
+    print(f"[STEP {step}] Blocker check ({suffix})")
 
     ds_image = downscale_image(image)
-    output = vision_call(AUDIT_PROMPT, ds_image)
 
-    blocked = _detect_blocker_from_text(output)
+    # ---- CALL 1: BLOCKER ONLY ----
+    blocker_raw = vision_call_blocker(BLOCKER_DETECTION_PROMPT, ds_image)
+    blocked, blocker_details = parse_blocker_response(blocker_raw)
+
+    log(
+        f"Step {step} — {suffix} Blocker Check",
+        image,
+        blocker_raw
+    )
 
     if blocked:
-        log(f"Step {step} — {suffix} Blocker Detected", image, output)
-        return output, True
+        return blocker_details, True
 
-    log(f"Step {step} — {suffix} Audit", image, output)
-    return output, False
+    # ---- CALL 2: AUDIT ONLY ----
+    print(f"[STEP {step}] Running audit ({suffix})")
+    audit_raw = vision_call_audit(AUDIT_PROMPT, ds_image)
 
+    log(
+        f"Step {step} — {suffix} Audit",
+        image,
+        audit_raw
+    )
 
-def run_blocker_audit(step, image):
+    return audit_raw, False
+
+def run_blocker_audit(step, image, details: str | None = None):
     print(f"[STEP {step}] Running blocker grounding")
 
     ds_image = downscale_image(image)
-    raw = vision_call_text(BLOCKER_PROMPT, ds_image)
+    prompt = BLOCKER_PROMPT
+
+    if details:
+        prompt = (
+            prompt
+            + "\n\n[BLOCKER_DESCRIPTION]\n"
+            + details
+            + "\n[/BLOCKER_DESCRIPTION]\n"
+        )
+    print(prompt)
+    raw = vision_call_blocker(prompt, ds_image)
 
     print("[BLOCKER RAW]")
     print(raw)
