@@ -7,7 +7,7 @@ import subprocess
 from audit import run_audit, run_blocker_audit
 from actions import inject_numbers, remove_numbers, click_number
 
-URL = "https://www.schbang.com"
+URL = "https://www.duroflexworld.com"
 VIEWPORT = {"width": 1280, "height": 800}
 AUDIT_FILE = "audit.md"
 
@@ -22,7 +22,7 @@ def run():
 
         print(f"[BROWSER] Navigating to {URL}")
         page.goto(URL, timeout=30000)
-        time.sleep(15)
+        time.sleep(8)
 
         step = 0
 
@@ -34,7 +34,7 @@ def run():
             page.screenshot(path=clean_img, full_page=False)
             print(f"[SCREENSHOT] Saved {clean_img}")
 
-            blocker_details, blocked = run_audit(step, clean_img)
+            _, blocked = run_audit(step, clean_img)
 
             if blocked:
                 print("[AGENT] Blocker detected, attempting removal")
@@ -45,7 +45,7 @@ def run():
                 page.screenshot(path=num_img, full_page=False)
                 print(f"[SCREENSHOT] Saved {num_img}")
 
-                close_idx = run_blocker_audit(step, num_img, blocker_details)
+                close_idx = run_blocker_audit(step, num_img)
 
                 if close_idx is not None:
                     print(f"[ACTION] Clicking element {close_idx}")

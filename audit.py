@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image, ImageFilter
 import re
 
-BLOCKER_MODEL = "ministral-3"   # or gemma3:vision
+BLOCKER_MODEL = "devstral-small-2"   # or gemma3:vision
 AUDIT_MODEL = "devstral-small-2"
 AUDIT_FILE = "audit.md"
 
@@ -79,22 +79,14 @@ def log(title, img, text):
         f.write("\n```\n\n---\n\n")
 
 
-def parse_blocker_response(text: str):
+def parse_blocker_response(text: str) -> bool:
     """
-    Returns (blocked: bool, details: str | None)
+    Returns whether a blocker is suspected.
     """
     if not text:
-        return False, None
+        return False
 
-    blocked = "SUSPECTED: YES" in text
-
-    details = None
-    if blocked:
-        m = re.search(r"DETAILS:\s*(.+)", text, re.I | re.S)
-        if m:
-            details = m.group(1).strip()
-
-    return blocked, details
+    return "SUSPECTED: YES" in text
 
 
 
@@ -105,7 +97,7 @@ def run_audit(step, image, suffix="Initial"):
 
     # ---- CALL 1: BLOCKER ONLY ----
     blocker_raw = vision_call_blocker(BLOCKER_DETECTION_PROMPT, ds_image)
-    blocked, blocker_details = parse_blocker_response(blocker_raw)
+    blocked = parse_blocker_response(blocker_raw)
 
     log(
         f"Step {step} — {suffix} Blocker Check",
@@ -114,7 +106,7 @@ def run_audit(step, image, suffix="Initial"):
     )
 
     if blocked:
-        return blocker_details, True
+        return None, True
 
     # ---- CALL 2: AUDIT ONLY ----
     print(f"[STEP {step}] Running audit ({suffix})")
@@ -132,20 +124,9 @@ def run_blocker_audit(step, image, details: str | None = None):
     print(f"[STEP {step}] Running blocker grounding")
 
     ds_image = downscale_image(image)
-    prompt = BLOCKER_PROMPT
-
-    if details:
-        prompt = (
-            prompt
-            + "\n\n[BLOCKER_DESCRIPTION]\n"
-            + details
-            + "\n[/BLOCKER_DESCRIPTION]\n"
-        )
-    print(prompt)
-    raw = vision_call_blocker(prompt, ds_image)
+    raw = vision_call_blocker(BLOCKER_PROMPT, ds_image)
 
     print("[BLOCKER RAW]")
-    print(raw)
 
     idx = parse_close_number(raw)
 

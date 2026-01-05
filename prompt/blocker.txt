@@ -1,69 +1,30 @@
-You are analyzing a screenshot that may show a popup, modal, or overlay
-with NUMBERED UI elements drawn on top of visible controls which is in yellow who probably hidding some part of button.
+### TASK: POP-UP TERMINATION
+You are an autonomous web-agent. Your goal is to identify the EXACT element ID required to close the current overlay/pop-up. 
 
-Your task is to determine **whether a popup still exists**, and **only if it exists**, identify the SINGLE number that DISMISSES or CLOSES it.
+### INPUT DATA:
+1. SCREENSHOT: A browser view with green numbered badges overlaying interactive elements.
 
-If and ONLY IF a popup clearly exists, identify the SINGLE number that DISMISSES or CLOSES the popup.
+### ANALYSIS PROTOCOL:
+1. SCAN the visual screenshot for common "Close" patterns: "X" icons, top-right positioning, or "Dismiss" text.
+2. CROSS-REFERENCE the visual position with the ID on the green badge.
+3. EVALUATE the ELEMENT_LOG for the following high-probability signals:
+   - Labels: "close", "dismiss", "cancel", "hide", "accept cookies"
+   - Selectors: Containing "close", "btn-close", "modal-x".
+   - Role: "button" or "svg" located in the top-right quadrant of a container.
+4. some numbers can look similar like 18,16 so look closly background color is white and number color is black 
+5. EXCEPTION - if there is no close button and also if it's just warning or that box don't require any info then consider submit button as close button
+   - Example Cunt me in
+   - I got it
+   - Thanks 
+   etc...
 
----
-
-## WHAT COUNTS AS A VALID CLOSE ACTION
-
-A valid CLOSE control must clearly do ONE of the following:
-
-• Close the popup  
-• Dismiss the popup  
-• Skip the popup  
-• Reject the popup  
-• Remove the popup without progressing  
-
-Typical valid close indicators include:
-- probably will be in pop top right corner with some button 
-- “X”
-- “✕”
-- or half cut X with numbere
-- “Close”
-- “No thanks”
-- “Not now”
-- “I’ll do it later”
-- “Skip”
-- “Dismiss”
-- “Not interested”
-- A back arrow that exits the popup
-
-you probably got description about how close button looks like from BLOCKER_DESCRIPTION
-so check from that which one match
-
----
-
-## WHAT YOU MUST NEVER SELECT (CRITICAL)
-
-❌ DO NOT select any control that:
-- Submits a form
-- Accepts cookies
-- Proceeds forward
-- Confirms an action
-- Says “OK”, “Allow”, “Accept”, “Continue”, “Submit”, “Agree”, “Yes”
-- Advances the user flow in any way
-- Is a CTA such as “Get coupon”, “Claim”, “Start”, “Buy”, etc.
-
-If a control moves the user **forward**, it is NOT a close button.
-
----
-
-## DECISION RULE (STRICT)
-
-Select the number that:
-- Most clearly REMOVES the popup
-- Leaves the underlying page visible
-- Does NOT perform submission or confirmation
-
-If multiple numbers exist:
-- Prefer an “X” or icon close over text
-- Prefer top-right close buttons
-- Prefer passive rejection over acceptance
-
----
+### DO NOT SELCT THIS BUTTON:
+1. DO NOT GIVE BUTTON WHO IS LIKE SUBMIT THE FORM UNTIL THERE IS NO OPTION
+   - buttons like 
+      - Get Discount
+      - Submit
+      - I want this.
+      etc...
 
 ## RESPONSE FORMAT (MANDATORY)
 
