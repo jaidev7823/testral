@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Browser Sidekick",
+  "description": "A dual-pane application featuring a simulated internal browser with search functionality and a responsive Gemini-powered chat sidebar.",
+  "requestFramePermissions": []
+}
